@@ -1,0 +1,75 @@
+name: Go
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+
+  Test:
+    runs-on: ${{ matrix.os }}
+    env:
+      HOST: localhost
+      DBPORT: 5432
+      USER: root
+      PASSWORD: root
+      DBNAME: root
+    strategy:
+      matrix:
+        go_version: ['1.18', '1.17', '>=1.18']
+        os: ['ubuntu-latest', 'ubuntu-22.04']
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+#O comando é uma ação (action) essencial do GitHub Actions que tem como principal função clonar o repositório Git onde o workflow está sendo executado para o ambiente de execução (o "runner"). 
+      with:
+        go-version: ${{ matrix.go_version }}
+      
+    - name: Build-DB
+      run: docker compose build
+      
+    - name: Create-DB
+      run: docker compose up -d
+
+    - name: Test
+      run: go test -v main_test.go 
+      
+  
+  Build_main:
+    needs: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+#O comando é uma ação (action) essencial do GitHub Actions que tem como principal função clonar o repositório Git onde o workflow está sendo executado para o ambiente de execução (o "runner"). 
+    - name: Build
+      run: go build -v main.go
+      
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v5.0.0
+# O comando actions/upload-artifact@v5.0.0 é uma ação oficial do GitHub Actions usada para salvar (fazer upload) arquivos e diretórios gerados durante a execução de um workflow
+      with:
+    # Artifact name
+        name: programa
+    # A file, directory or wildcard pattern that describes what to upload
+        path: main
+
+  Docker:
+    needs: Build_main
+    uses: ./.github/workflows/Docker.yml
+    secrets: inherit
+
+#  Deploy_EC2:
+#    needs: Build_main
+#    uses: ./.github/workflows/EC2.yml
+#    secrets: inherit
+
+  Deploy_ECS:
+    needs: Docker
+    uses: ./.github/workflows/ECS.yml
+    secrets: inherit
+
+

@@ -1,0 +1,57 @@
+name: Entrega Continua
+
+on:
+  workflow_call:
+
+jobs:
+  ECS:
+    runs-on: ubuntu-latest
+    steps:
+     - name: Configurando Credenciais da AWS
+       uses: aws-actions/configure-aws-credentials@v5.1.0
+       with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+
+# As 2 linhas abaixo foram colocadas para debug do script. Testam no Github Actions de as credenciais acima funcionaram!
+     - name: Listar Task Definitions (para debug)
+       run: aws ecs list-task-definitions --region us-east-2
+    
+     - name: Obtendo arquivo de definição da tarefa
+# A função principal do comando abaixo é obter os detalhes de uma definição de tarefa existente do Amazon ECS 
+# e salvar esses detalhes em um arquivo JSON local formatado para reutilização
+
+       run: aws ecs describe-task-definition --task-definition Tarefa_API-Go:2 --query taskDefinition > task-definition.json
+    
+     - name: Fill in the new image ID in the Amazon ECS task definition
+       id: task-def
+       uses: aws-actions/amazon-ecs-render-task-definition@v1
+
+# O comando aws-actions/amazon-ecs-render-task-definition@v1 é uma GitHub Action que automatiza a atualização
+# de um arquivo de definição de tarefa (task definition) do Amazon ECS com valores dinâmicos, como a 
+# URI (Identificador Uniforme de Recurso) da imagem do contêiner recém-construída
+       
+       with:
+        task-definition: task-definition.json
+        container-name: Go
+        image: jnadyr/go_ci:${{github.run_number}}
+        environment-variables: |
+            HOST=${{ secrets.DBHOST }}
+            USER=${{ secrets.DBUSER }}
+            PASSWORD=${{ secrets.DBPASSWORD }}
+            DBNAME=${{ secrets.DBNAME }}
+            DBPORT=${{ secrets.DBPORT }}
+            PORT=8000
+
+     - name: Deploy Amazon ECS task definition
+# O comando é uma GitHub Action utilizada para automatizar o processo de implantação (deployment) de uma aplicação
+# no Amazon Elastic Container Service (Amazon ECS). Essencialmente, esta ação orquestra os passos finais 
+# de um pipeline de CI/CD para colocar sua nova versão de código em execução na AWS.
+
+       uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+       with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: Servico_API-Go # (Nome do serviço lá na AWS)
+        cluster: API-Go # (Nome do cluster lá na AWS)
+        wait-for-service-stability: true # Não se sobe o serviço e vai-se adiante! Aguarda-se para ver se está tudo OK!
