@@ -14,7 +14,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
 
-# As 2 linhas abaixo foram colocadas para debug do script. Testam no Github Actions de as credenciais acima funcionaram!
+# As 2 linhas abaixo foram colocadas para debug do script. Testam no Github Actions se as credenciais acima funcionaram!
      - name: Listar Task Definitions (para debug)
        run: aws ecs list-task-definitions --region us-east-2
     
@@ -62,4 +62,14 @@ jobs:
      - name: Requisição do web site do container
        continue-on-error: true # continua o job mesmo sob um erro
        run: sleep 30s ; wget LB-API-Go-1557708893.us-east-2.elb.amazonaws.com:8000/Aurea
+
+     - name: Deploy Amazon ECS task definition da task definition do rollback
+       uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+       with:
+        task-definition: task-definition.json.old
+        service: Servico_API-Go # (Nome do serviço lá na AWS)
+        cluster: API-Go # (Nome do cluster lá na AWS)
+        wait-for-service-stability: true # Não se sobe o serviço e vai-se adiante! Aguarda-se para ver se está tudo OK!
+
+       
        
