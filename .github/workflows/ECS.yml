@@ -23,6 +23,9 @@ jobs:
 # e salvar esses detalhes em um arquivo JSON local formatado para reutilização
 
        run: aws ecs describe-task-definition --task-definition Tarefa_API-Go:2 --query taskDefinition > task-definition.json
+
+     - name: Copia o arquivo de tarefa para rollback
+       run: cp task-definition.json task-definition.json.old
     
      - name: Fill in the new image ID in the Amazon ECS task definition
        id: task-def
@@ -55,3 +58,8 @@ jobs:
         service: Servico_API-Go # (Nome do serviço lá na AWS)
         cluster: API-Go # (Nome do cluster lá na AWS)
         wait-for-service-stability: true # Não se sobe o serviço e vai-se adiante! Aguarda-se para ver se está tudo OK!
+
+     - name: Requisição do web site do container
+       continue-on-error: true # continua o job mesmo sob um erro
+       run: sleep 30s ; wget LB-API-Go-1557708893.us-east-2.elb.amazonaws.com:8000/Aurea
+       
