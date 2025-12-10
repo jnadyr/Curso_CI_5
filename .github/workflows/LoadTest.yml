@@ -35,3 +35,8 @@ jobs:
       with:
         python-version: 3.10
         allow-prereleases: false
+
+    - uses: BSFishy/pip-action@v1
+      with:
+        packages: |
+          locust
