@@ -21,7 +21,11 @@ jobs:
     - name: HashiCorp - Setup Terraform # Instala o Terraform no runner
       uses: hashicorp/setup-terraform@v2.0.3
 
-          
+    - run: terraform -chdir=Infra/CI/env/Homolog init #inicia o Terraform
+
+    - run: terraform -chdir=Infra/CI/env/Homolog apply -auto-approve  # aplica o Terraform 
+
+    - run: echo "$(terraform -chdir=Infra/CI/env/Homolog output -raw IP_alb)" # pego a saída
 
     
 
