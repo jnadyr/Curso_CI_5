@@ -27,9 +27,9 @@ jobs:
 
     - run: terraform -chdir=Infra/CI/env/Homolog apply -auto-approve  # aplica o Terraform 
 
-    - run: echo "$(terraform -chdir=Infra/CI/env/Homolog output -raw IP_alb)" # Executa o parêntesis e joga a saída para o terminal
-          # no comando acima, volta o IP ou URL do alb (app load balancer)
-
+    - run: echo "$(terraform -chdir=Infra/CI/env/Homolog output -raw IP_alb)"     # Executa o parêntesis e joga a saída para o terminal # No comando acima, volta o IP ou URL do alb (app load balancer)
+      id: URL
+             
     - name: Setup Python  # Instala o Python pq o Locust é um app Python
       uses: actions/setup-python@v6.1.0
       with:
@@ -53,3 +53,6 @@ jobs:
        echo "	tasks = [UserTasks]" >> locustfile.py
        echo "	wait_time = between(1, 5)" >> locustfile.py
        cat locustfile.py
+
+    - name: Roda o teste de carga
+      run: sleep 60s ; locust -f locustfile.py --headless -u 10 -r 5 --run-time 60s -H http://${{ steps.URL.outputs.stdout }}
