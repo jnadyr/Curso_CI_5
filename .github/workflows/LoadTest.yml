@@ -29,5 +29,9 @@ jobs:
 
     - run: echo "$(terraform -chdir=Infra/CI/env/Homolog output -raw IP_alb)" # Executa o parêntesis e joga a saída para o terminal
           # no comando acima, volta o IP ou URL do alb (app load balancer)
-    
-  
+
+    - name: Setup Python  # Instala o Python pq o Locust é um app Python
+      uses: actions/setup-python@v6.1.0
+      with:
+        python-version: 3.10
+        allow-prereleases: false
