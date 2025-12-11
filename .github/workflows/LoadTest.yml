@@ -33,7 +33,7 @@ jobs:
     - name: Setup Python  # Instala o Python pq o Locust é um app Python
       uses: actions/setup-python@v6.1.0
       with:
-        python-version: 3.10
+        python-version: "3.10"
         allow-prereleases: false
 
     - uses: BSFishy/pip-action@v1
