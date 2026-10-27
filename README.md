@@ -1,1 +1,1 @@
-
+In this code, we will secure an application in a production environment by using a technique called "rollback" to ensure the application remains functional at all times. We will also revisit the automated creation of Infrastructure as Code (IaC) and perform a load test using the infrastructure that was automatically provisioned. We will use GitHub Actions.
